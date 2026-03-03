@@ -1,0 +1,13 @@
+environment: mail_flow
+params:
+  max_steps: 50
+  queue_capacity: 150
+  start_queue: 10
+  process_rate: 6
+  backlog_penalty: 0.02
+
+distributions:
+  arrivals:
+    type: gaussian
+    mean: [8.0]
+    std: [3.0]

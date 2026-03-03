@@ -1,0 +1,7 @@
+environment: mail_flow
+params:
+  max_steps: 20
+  queue_capacity: 100
+  start_queue: 5
+  process_rate: 4
+# distributions intentionally omitted -> random defaults will be used
