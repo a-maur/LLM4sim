@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
-from rl_framework_skeleton.rl_core.base import BaseEnvironment, BaseSimulation, StepResult
-from rl_framework_skeleton.rl_core.factory import build_distribution
+from LLM4sim.rl_core.base import BaseEnvironment, BaseSimulation, StepResult
+from LLM4sim.rl_core.factory import build_distribution
 
 
 @dataclass

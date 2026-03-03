@@ -18,7 +18,7 @@ A starter framework for building multiple RL environments with a shared structur
 
 ## Quick start
 ```bash
-python -m rl_framework_skeleton.examples.run_demo --config rl_framework_skeleton/config/mail_flow.yaml
+python -m LLM4sim.examples.run_demo --config LLM4sim/config/mail_flow.yaml
 ```
 
 If a distribution block is missing in config, a random distribution is used by default.

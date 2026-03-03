@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 
-from rl_framework_skeleton.rl_core.config_loader import load_config
-from rl_framework_skeleton.simulations.mail_flow import MailFlowEnvironment, MailFlowSimulation
+from LLM4sim.rl_core.config_loader import load_config
+from LLM4sim.simulations.mail_flow import MailFlowEnvironment, MailFlowSimulation
 
 
 def main() -> None:
@@ -11,7 +11,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="rl_framework_skeleton/config/mail_flow_random_defaults.yaml",
+        default="LLM4sim/config/mail_flow_random_defaults.yaml",
     )
     parser.add_argument("--episodes", type=int, default=1)
     args = parser.parse_args()

@@ -1,4 +1,4 @@
-from rl_framework_skeleton.simulations.mail_flow import MailFlowEnvironment, MailFlowSimulation
+from LLM4sim.simulations.mail_flow import MailFlowEnvironment, MailFlowSimulation
 
 
 def test_mail_flow_runs_with_defaults():
