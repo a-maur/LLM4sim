@@ -42,7 +42,7 @@ class MailFlowSimulation(BaseSimulation):
         }
 
     def transition(
-        self, state: Dict[str, Any], action: Any, step_idx: int
+        self, state: Dict[str, Any], action: Any
     ) -> Tuple[Dict[str, Any], float, bool, Dict[str, Any]]:
         # action is an optional processing boost in {-1, 0, +1} for this skeleton
         boost = int(action) if action is not None else 0
@@ -60,14 +60,16 @@ class MailFlowSimulation(BaseSimulation):
         processed = min(queue_capped, effective_process_rate)
         queue_next = queue_capped - processed
 
+        t = int(state["time"])
+
         next_state = {
             "queue_size": queue_next,
-            "time": step_idx + 1,
+            "time": t + 1,
             "dropped_mail": int(state["dropped_mail"]) + dropped,
         }
 
         reward = float(processed) - self.params.backlog_penalty * float(queue_next)
-        done = (step_idx + 1) >= self.params.max_steps
+        done = (t + 1) >= self.params.max_steps
         info = {
             "arrivals": arrivals,
             "processed": processed,
@@ -98,7 +100,7 @@ class MailFlowEnvironment(BaseEnvironment):
         return self.state, {"reset": True}
 
     def step(self, action: Any) -> StepResult:
-        next_state, reward, done, info = self.sim.transition(self.state, action, self.step_idx)
+        next_state, reward, done, info = self.sim.transition(self.state, action)
         self.state = next_state
         self.step_idx += 1
         self.last_reward = reward

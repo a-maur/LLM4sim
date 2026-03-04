@@ -27,7 +27,7 @@ class BaseSimulation(ABC):
 
     @abstractmethod
     def transition(
-        self, state: Dict[str, Any], action: Any, step_idx: int
+        self, state: Dict[str, Any], action: Any
     ) -> Tuple[Dict[str, Any], float, bool, Dict[str, Any]]:
         raise NotImplementedError
 
