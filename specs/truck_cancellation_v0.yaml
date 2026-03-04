@@ -1,0 +1,99 @@
+model_id: truck_cancellation_v0
+version: 0
+goal: >
+  Decide per destination whether to keep or cancel the last planned truck of the day,
+  using only intra-day registered incoming volumes.
+
+problem_context:
+  domain: parcel logistics in sorting centers
+  horizon: one operational day
+  carry_over_rule: unshipped parcels are carried to next day
+  parcel_priorities:
+    - high
+    - low
+  loading_policy: high-priority parcels are always loaded first
+
+decision_model:
+  decision_variable:
+    name: keep_last_truck
+    type: binary_vector
+    shape: [n_destinations]
+    semantics:
+      1: keep last truck
+      0: cancel last truck
+  decision_time:
+    type: single_cutoff
+    parameter: decision_step
+
+state:
+  observable:
+    - t
+    - day_of_week
+    - season
+    - registered_high_by_destination
+    - registered_low_by_destination
+    - decision_locked
+  latent:
+    - true_daily_high_by_destination
+    - true_daily_low_by_destination
+    - shared_daily_shock
+    - destination_shocks
+
+stochastic_assumptions:
+  demand_generation:
+    depends_on:
+      - destination
+      - day_of_week
+      - season
+    correlation:
+      - shared_daily_shock creates cross-destination correlation
+      - destination_shock affects both priorities at each destination
+  registration_process:
+    description: >
+      Registered incoming volume follows a cumulative intra-day curve and reveals
+      only part of the final daily demand before the decision cutoff.
+
+dynamics:
+  per_time_step:
+    - update registered incoming high/low volumes according to registration curve
+    - apply decision only at decision_step (ignored otherwise)
+  terminal_step:
+    - compute route capacities with and without last truck
+    - load high-priority first, then low-priority
+    - compute unshipped high/low parcels (carry-over to next day)
+    - emit target label: last_truck_needed_by_destination
+
+target_label:
+  name: last_truck_needed_by_destination
+  definition: >
+    true if total parcels for the destination exceed capacity without the last truck.
+
+reward_model:
+  objective: maximize operational utility at end of day
+  components:
+    - + cancellation_saving if last truck is canceled
+    - - penalty_unshipped_high * unshipped_high
+    - - penalty_unshipped_low * unshipped_low
+  note: >
+    High-priority penalties should be set significantly larger than low-priority penalties.
+
+episode_termination:
+  condition: t == time_steps_per_day
+
+config_contract:
+  required_parameters:
+    - n_destinations
+    - time_steps_per_day
+    - decision_step
+    - trucks_per_day_by_destination
+    - truck_capacity
+    - day_of_week_weights
+    - season_weights
+    - destination_base_mean_high
+    - destination_base_mean_low
+    - registration_curve
+    - shared_shock_std
+    - destination_shock_std
+    - cancellation_saving
+    - penalty_unshipped_high
+    - penalty_unshipped_low

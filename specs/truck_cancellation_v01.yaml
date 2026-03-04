@@ -1,0 +1,70 @@
+model_id: truck_cancellation_v01
+version: 1
+goal: >
+  Decide on one active route per day whether to cancel its last booked truck, using only
+  observed incoming total volume (aggregated over all destinations and including carry-over).
+
+horizon_and_clock:
+  step_unit: intra-day time step
+  day_length: time_steps_per_day
+  episode_length_days: episode_days
+  day_rollover:
+    day_of_week: increments modulo 7 each new day
+    season: selected by season_cycle
+
+decision_process:
+  action_scope: single active route each day
+  action_variable:
+    name: keep_last_truck_for_active_route
+    type: binary
+    semantics:
+      1: keep
+      0: cancel
+  decision_time: decision_step
+
+state_design:
+  observable:
+    - observed_incoming_volume_total
+  hidden:
+    - incoming_split_by_destination_and_priority
+    - queue_high_by_destination
+    - queue_low_by_destination
+    - active_route
+    - booked_trucks_by_destination
+    - truck_departure_schedule_by_destination
+    - day_of_week
+    - season
+
+demand_model:
+  priorities:
+    - high_priority
+    - low_priority
+  flexibility:
+    - each priority has its own day_of_week dependence
+    - each priority has its own season dependence
+    - each priority has its own asymmetric registration_curve
+    - each priority has its own shock scales
+
+booking_model:
+  policy: historical service-level planning
+  target_service_level: booking_service_level
+  implementation: >
+    For each destination/day/season context, estimate the target quantile of
+    total daily volume (high+low) and book trucks so capacity reaches that quantile.
+
+operations_model:
+  loading_rule: high priority loaded first, then low priority
+  departure_logic: trucks depart during the day according to schedule
+  default_schedule: uniform over day steps
+  carry_over_rule: unshipped parcels remain in queue for next day
+
+labels_and_rewards:
+  label:
+    name: last_truck_needed_active_route
+    definition: >
+      Counterfactual indicator for active route: at last scheduled departure time,
+      there were parcels waiting to be loaded if the last truck were available.
+  reward:
+    - + cancellation_saving when last truck canceled
+    - - penalty_unshipped_high * end_of_day_unshipped_high_active_route
+    - - penalty_unshipped_low * end_of_day_unshipped_low_active_route
